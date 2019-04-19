@@ -1,0 +1,302 @@
+<html>
+
+<head>
+    <title>Video Intelligence</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <link rel="stylesheet" href="https://necolas.github.io/normalize.css/latest/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/balloon-css/0.5.0/balloon.min.css">
+
+    <script src="json-viewer/jquery.json-viewer.js"></script>
+    <link href="json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet" />
+
+    <script src="video_object_tracking_view.js"></script>
+    <script src="video_insight.js"></script>
+    <script src="scripts.js"></script>
+
+
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="site.css">
+
+    <style>
+        #search {
+            margin-left: 20px;
+            height: 35px;
+            width: 400px;
+            border-style: none;
+            padding-left: 20px;
+            font-size: 1.3em;
+            color: #636363;
+            border-radius: 5px;
+        }
+
+        #search:focus {
+            border: none;
+        }
+
+        .to-index:hover {
+            cursor: pointer;
+        }
+
+        .mdl-layout__tab-bar {
+            height: auto;
+            width: auto;
+        }
+
+        .transcript-word:hover {
+            background-color: yellow;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        #object-tracking-canvas {
+            height: 392px;
+            width: 697px;
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .object-tracking-canvas {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .modal-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            overflow: scroll;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 9999;
+            display: none;
+        }
+
+        .modal-container>div {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            min-height: 25px;
+            margin: 10% auto;
+            padding: 15px;
+            background-color: white;
+            overflow-x: scroll;
+        }
+
+        #spinner {
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="json-container" class="modal-container">
+        <div id="json-div">
+            <div id="spinner">
+                <div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+            </div>
+            <pre id="json"></pre>
+        </div>
+    </div>
+
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+        <header class="mdl-layout__header">
+
+            <div class="to-index mdl-layout-icon">
+                <!-- <i class="material-icons" style="font-size: 2.2em;">remove_red_eye</i> -->
+                <img src="logo.svg" style="font-size: 2.2em; width: inherit; margin-top: 4px;">
+            </div>
+
+            <div class="mdl-layout__header-row">
+                <span class="to-index mdl-layout-title">Video Intelligence</span>
+
+                <input type="text" id="search" autocomplete="off" placeholder="Search...">
+            </div>
+
+        </header>
+
+
+        <main class="mdl-layout__content">
+
+
+
+            <div id="video-card-list-container" class="video-container l-flex-wrap l-pad-6">
+
+                <!-- Where the video card go -->
+            </div>
+
+
+            <article id="results" style="display:none" class="video-container  l-flex-fullscreen l-pinned">
+                <div class="col-1 l-pad-horizontal-5 l-pad-vertical-12 l-overflow">
+                    <!-- <h2 class="text-title is-uppercase no-margin">RESULTS FOR </h2> -->
+
+
+                    <h2 class="text-title"><b>Label Annotation</b> results for <b>"<span
+                                class="search-result-term"></span>"</b></h2>
+                    <p class="text-body is-secondary is-uppercase"><span id="search-result-count"></span> videos</p>
+                    <div id="video-search-results">
+
+                        <!-- Video results from label search -->
+
+                    </div>
+                    <br>
+
+
+
+                    <h2 class="text-title"><b>Transcription</b> results for <b>"<span
+                                class="search-result-term"></span>"</b></h2>
+                    <p class="text-body is-secondary is-uppercase"><span id="search-result-count-transcript"></span>
+                        videos</p>
+                    <div id="video-search-results-transcript">
+
+                        <!-- Video results from transcription search -->
+
+                    </div>
+
+                    <br>
+
+
+
+                    <h2 class="text-title"><b>Object Tracking</b> results for <b>"<span
+                                class="search-result-term"></span>"</b></h2>
+                    <p class="text-body is-secondary is-uppercase"><span
+                            id="search-result-count-object-tracking"></span>
+                        videos</p>
+                    <div id="video-search-results-object-tracking">
+
+                        <!-- Video results from object tracking search -->
+
+                    </div>
+
+                </div>
+                <aside id="sidebar" class="col-fixed-4 fill-subtle  l-overflow"></aside>
+            </article>
+
+
+            <div id="video-view-container" style="display:none" class="video-container">
+
+                <div id="stage">
+                    <header id="hero" class="hero">
+                        <div class="l-flex">
+                            <div class="hero-video col-1 no-margin">
+                                <canvas height=500 width=800 id="object-tracking-canvas"></canvas>
+                                <video id="video-view" poster="#" class="video-card-video" controls="true"
+                                    src="#"></video>
+                            </div>
+                        </div>
+
+                        <div class="announcement-bar sheet clearfix">
+                            <div class="announcement-bar-title l-left">
+                                <h3 id="video-view-title" class="text-title no-margin"></h3>
+                                <p class="text-caption is-secondary no-margin" id="video-length">Length: <span
+                                        id="video-view-duration">4:42</span></p>
+                            </div>
+
+                            <a id="json-view" href="#">
+                                <button id="viewjson" class="button l-right">
+                                    <i class="material-icons">code</i>View JSON
+                                </button>
+                            </a>
+                        </div>
+                    </header>
+
+                    <div id="view-tabs">
+                        <div id="hero-video-wedge" style="display: none; height: 460px;"></div>
+
+
+                        <div class="mdl-layout__tab-bar">
+                            <a href="#" id="annotation-tab-button" class="mdl-layout__tab is-active">Annotations</a>
+                            <a href="#" id="transcription-tab-button" class="mdl-layout__tab">Transcription</a>
+                            <a href="#" id="object-tracking-tab-button" class="mdl-layout__tab">Object Tracking</a>
+                        </div>
+                    </div>
+
+                    <article id="video-annotations" class="l-flex">
+
+                        <div id="graphs" class="col-1 l-pad-4 no-margin">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Label</th>
+                                        <th>Timeline</th>
+                                    </tr>
+                                </thead>
+                                <thead>
+                                </thead>
+                                <tbody id="data-rows">
+
+                                    <!-- where the frame labels go -->
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+
+                    <article id="video-transcription" style="display: none" class="l-flex">
+
+                        <div class="col-1 l-pad-4 no-margin">
+
+                            <div id="transcription">
+
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <article id="video-object-tracking" style="display: none" class="l-flex">
+
+                        <div class="col-1 l-pad-4 no-margin">
+
+                            <div id="object-tracking">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Label</th>
+                                            <th>Timeline</th>
+                                        </tr>
+                                    </thead>
+                                    <thead>
+                                    </thead>
+                                    <tbody id="data-object-rows">
+
+                                        <!-- where the frame labels go -->
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </article>
+
+
+                </div>
+
+            </div>
+
+
+
+        </main>
+
+
+    </div>
+
+
+
+</body>
+
+
+</html>
